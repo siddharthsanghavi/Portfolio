@@ -148,6 +148,53 @@
     max-width: 64ch;
   }
 
+  .note .body > :first-child { margin-top: 0; }
+  .note .body > :last-child { margin-bottom: 0; }
+
+  .note .body a { color: var(--accent-blue); }
+
+  .note .body img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px 0;
+    border: 1px solid var(--border);
+  }
+
+  .note .body pre {
+    background: var(--border);
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .note .body code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+
+  .note .body blockquote {
+    margin: 16px 0;
+    padding-left: 16px;
+    border-left: 2px solid var(--accent-orange);
+    color: var(--mut);
+  }
+
+  .note .body h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px;
+    color: var(--fg);
+    margin: 24px 0 10px;
+  }
+
+  .empty {
+    padding: 34px 0;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--mut);
+  }
+
   /* footer */
   footer {
     padding: 60px 0 90px;
@@ -189,28 +236,8 @@
   </div>
 
   <!-- notes -->
-  <div class="note">
-    <div class="note-head">
-      <h2>Note title placeholder</h2>
-      <span class="date mono">Jul 2026</span>
-    </div>
-    <p class="body mono">Placeholder note body — swap in a real write-up here.</p>
-  </div>
-
-  <div class="note">
-    <div class="note-head">
-      <h2>Note title placeholder</h2>
-      <span class="date mono">Jun 2026</span>
-    </div>
-    <p class="body mono">Placeholder note body — swap in a real write-up here.</p>
-  </div>
-
-  <div class="note">
-    <div class="note-head">
-      <h2>Note title placeholder</h2>
-      <span class="date mono">May 2026</span>
-    </div>
-    <p class="body mono">Placeholder note body — swap in a real write-up here.</p>
+  <div id="notes">
+    <p class="empty mono">Loading…</p>
   </div>
 
   <!-- footer nav -->
@@ -221,12 +248,68 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
 <script>
   var darkToggle = document.getElementById('dark-toggle');
   darkToggle.addEventListener('click', function () {
     var isDark = document.documentElement.classList.toggle('dark');
     darkToggle.textContent = isDark ? 'LIGHT MODE' : 'DARK MODE';
   });
+
+  function formatDate(iso) {
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }
+
+  function renderNotes(notes) {
+    var container = document.getElementById('notes');
+
+    if (!notes.length) {
+      container.innerHTML = '<p class="empty mono">Nothing posted yet.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+
+    notes.forEach(function (note) {
+      var el = document.createElement('div');
+      el.className = 'note';
+
+      var head = document.createElement('div');
+      head.className = 'note-head';
+
+      var h2 = document.createElement('h2');
+      h2.textContent = note.title;
+
+      var date = document.createElement('span');
+      date.className = 'date mono';
+      date.textContent = formatDate(note.created_at);
+
+      head.appendChild(h2);
+      head.appendChild(date);
+
+      var body = document.createElement('div');
+      body.className = 'body mono';
+      body.innerHTML = DOMPurify.sanitize(marked.parse(note.body));
+
+      el.appendChild(head);
+      el.appendChild(body);
+      container.appendChild(el);
+    });
+  }
+
+  fetch('/api/notes')
+    .then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    })
+    .then(renderNotes)
+    .catch(function () {
+      document.getElementById('notes').innerHTML =
+        '<p class="empty mono">Could not load notes.</p>';
+    });
 </script>
 </body>
 </html>

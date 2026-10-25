@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thought Terminal — Editor</title>
+<meta name="robots" content="noindex">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #faf9f7;
+    --fg: #1a1a1a;
+    --mut: #8a857e;
+    --mut2: #4a4a4a;
+    --border: #e6e2dc;
+    --accent-orange: #e2692a;
+    --accent-blue: #2b5fd9;
+    --panel: #fff;
+  }
+
+  html.dark {
+    --bg: #0e1116;
+    --fg: #f4f6f9;
+    --mut: #6b7480;
+    --mut2: #9aa3ad;
+    --border: #1e2530;
+    --accent-orange: #f0894a;
+    --accent-blue: #5b8cff;
+    --panel: #141921;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+
+  a { text-decoration: none; color: var(--accent-blue); }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 48px 80px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 34px 0 30px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header .name { font-weight: 700; font-size: 19px; }
+
+  .header nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    font-size: 12px;
+    letter-spacing: .06em;
+  }
+
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    background: none;
+    border: 1px solid var(--accent-orange);
+    color: var(--fg);
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+
+  button.primary {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+  }
+
+  button.danger { border-color: #c2412d; color: #c2412d; }
+  button:disabled { opacity: .45; cursor: default; }
+
+  /* layout */
+  .cols {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 36px;
+    padding-top: 32px;
+  }
+
+  @media (max-width: 860px) {
+    .cols { grid-template-columns: 1fr; }
+    .container { padding: 0 20px 60px; }
+  }
+
+  /* post list */
+  .list h3 {
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--mut);
+    margin: 0 0 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+  }
+
+  .list-item {
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-left: 2px solid transparent;
+    padding: 10px 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    color: var(--mut2);
+    display: block;
+  }
+
+  .list-item:hover { background: var(--panel); }
+
+  .list-item.active {
+    border-left-color: var(--accent-orange);
+    background: var(--panel);
+    color: var(--fg);
+  }
+
+  .list-item .meta {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--mut);
+    margin-top: 3px;
+  }
+
+  /* editor */
+  label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--mut);
+    margin-bottom: 7px;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  textarea {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 11px 13px;
+    font-size: 15px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  textarea {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    line-height: 1.65;
+    min-height: 420px;
+    resize: vertical;
+  }
+
+  .field { margin-bottom: 20px; }
+
+  .row {
+    display: flex;
+    gap: 18px;
+  }
+
+  .row .field { flex: 1; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar button { padding: 6px 11px; border-color: var(--border); }
+
+  .checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--mut2);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 6px;
+  }
+
+  .status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--mut);
+    margin-left: auto;
+  }
+
+  .status.error { color: #c2412d; }
+  .status.ok { color: var(--accent-blue); }
+
+  /* preview */
+  .preview {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 22px 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--mut2);
+    min-height: 420px;
+  }
+
+  .preview > :first-child { margin-top: 0; }
+  .preview img { max-width: 100%; height: auto; display: block; margin: 20px 0; }
+  .preview pre { background: var(--border); padding: 14px 16px; overflow-x: auto; font-size: 13px; }
+  .preview code { font-size: 13px; }
+  .preview a { color: var(--accent-blue); }
+
+  .preview blockquote {
+    margin: 16px 0;
+    padding-left: 16px;
+    border-left: 2px solid var(--accent-orange);
+    color: var(--mut);
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <span class="name">Thought Terminal <span class="mono" style="font-size:12px;color:var(--mut)">EDITOR</span></span>
+    <nav class="mono">
+      <a href="notes.html">View site</a>
+      <button id="dark-toggle">DARK MODE</button>
+    </nav>
+  </div>
+
+  <div class="cols">
+
+    <!-- post list -->
+    <div class="list">
+      <h3>POSTS</h3>
+      <button class="primary" id="new-post" style="width:100%;margin-bottom:16px">+ NEW POST</button>
+      <div id="post-list"></div>
+    </div>
+
+    <!-- editor -->
+    <div class="editor">
+      <div class="row">
+        <div class="field">
+          <label for="title">TITLE</label>
+          <input type="text" id="title" placeholder="What's this one about?">
+        </div>
+        <div class="field" style="max-width:190px">
+          <label for="date">DATE</label>
+          <input type="date" id="date">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>BODY — MARKDOWN</label>
+        <div class="toolbar">
+          <button data-wrap="**">BOLD</button>
+          <button data-wrap="*">ITALIC</button>
+          <button data-wrap="`">CODE</button>
+          <button data-prefix="### ">HEADING</button>
+          <button data-prefix="> ">QUOTE</button>
+          <button data-prefix="- ">LIST</button>
+          <button id="link-btn">LINK</button>
+          <button id="image-btn">IMAGE</button>
+          <button id="preview-btn" style="margin-left:auto">PREVIEW</button>
+        </div>
+        <textarea id="body" placeholder="Write here. Markdown works — **bold**, [links](url), ### headings, code blocks."></textarea>
+        <div class="preview hidden" id="preview"></div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="save">SAVE</button>
+        <label class="checkbox">
+          <input type="checkbox" id="published" checked> Published
+        </label>
+        <button class="danger hidden" id="delete">DELETE</button>
+        <span class="status mono" id="status"></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<input type="file" id="file-input" accept="image/*" class="hidden">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+<script>
+  var darkToggle = document.getElementById('dark-toggle');
+  darkToggle.addEventListener('click', function () {
+    var isDark = document.documentElement.classList.toggle('dark');
+    darkToggle.textContent = isDark ? 'LIGHT MODE' : 'DARK MODE';
+  });
+
+  var titleEl = document.getElementById('title');
+  var dateEl = document.getElementById('date');
+  var bodyEl = document.getElementById('body');
+  var publishedEl = document.getElementById('published');
+  var statusEl = document.getElementById('status');
+  var deleteBtn = document.getElementById('delete');
+  var previewEl = document.getElementById('preview');
+  var previewBtn = document.getElementById('preview-btn');
+  var listEl = document.getElementById('post-list');
+
+  var posts = [];
+  var currentId = null;
+  var dirty = false;
+
+  function today() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function setStatus(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = 'status mono' + (kind ? ' ' + kind : '');
+  }
+
+  function markDirty() {
+    dirty = true;
+    setStatus('unsaved changes');
+  }
+
+  [titleEl, dateEl, bodyEl, publishedEl].forEach(function (el) {
+    el.addEventListener('input', markDirty);
+  });
+
+  /* post list */
+
+  function renderList() {
+    listEl.innerHTML = '';
+
+    posts.forEach(function (post) {
+      var btn = document.createElement('button');
+      btn.className = 'list-item' + (post.id === currentId ? ' active' : '');
+      btn.textContent = post.title;
+
+      var meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = post.created_at + (post.published ? '' : ' · draft');
+      btn.appendChild(meta);
+
+      btn.addEventListener('click', function () { load(post); });
+      listEl.appendChild(btn);
+    });
+  }
+
+  function load(post) {
+    if (dirty && !confirm('Discard unsaved changes?')) return;
+
+    currentId = post.id;
+    titleEl.value = post.title;
+    dateEl.value = post.created_at;
+    bodyEl.value = post.body;
+    publishedEl.checked = !!post.published;
+    deleteBtn.classList.remove('hidden');
+    dirty = false;
+    setStatus('');
+    showEditor();
+    renderList();
+  }
+
+  function blank() {
+    if (dirty && !confirm('Discard unsaved changes?')) return;
+
+    currentId = null;
+    titleEl.value = '';
+    dateEl.value = today();
+    bodyEl.value = '';
+    publishedEl.checked = true;
+    deleteBtn.classList.add('hidden');
+    dirty = false;
+    setStatus('');
+    showEditor();
+    renderList();
+    titleEl.focus();
+  }
+
+  document.getElementById('new-post').addEventListener('click', blank);
+
+  /* toolbar */
+
+  function surround(before, after) {
+    var start = bodyEl.selectionStart;
+    var end = bodyEl.selectionEnd;
+    var text = bodyEl.value;
+    var selected = text.slice(start, end);
+
+    bodyEl.value = text.slice(0, start) + before + selected + after + text.slice(end);
+    bodyEl.focus();
+    bodyEl.setSelectionRange(start + before.length, start + before.length + selected.length);
+    markDirty();
+  }
+
+  function prefixLines(prefix) {
+    var start = bodyEl.selectionStart;
+    var text = bodyEl.value;
+    var lineStart = text.lastIndexOf('\n', start - 1) + 1;
+
+    bodyEl.value = text.slice(0, lineStart) + prefix + text.slice(lineStart);
+    bodyEl.focus();
+    bodyEl.setSelectionRange(start + prefix.length, start + prefix.length);
+    markDirty();
+  }
+
+  document.querySelectorAll('[data-wrap]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var mark = btn.getAttribute('data-wrap');
+      surround(mark, mark);
+    });
+  });
+
+  document.querySelectorAll('[data-prefix]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      prefixLines(btn.getAttribute('data-prefix'));
+    });
+  });
+
+  document.getElementById('link-btn').addEventListener('click', function () {
+    var url = prompt('Link URL');
+    if (url) surround('[', '](' + url + ')');
+  });
+
+  /* image upload */
+
+  var fileInput = document.getElementById('file-input');
+
+  document.getElementById('image-btn').addEventListener('click', function () {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files.length) upload(fileInput.files[0]);
+    fileInput.value = '';
+  });
+
+  bodyEl.addEventListener('paste', function (e) {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image/') === 0) {
+        e.preventDefault();
+        upload(items[i].getAsFile());
+        return;
+      }
+    }
+  });
+
+  bodyEl.addEventListener('dragover', function (e) { e.preventDefault(); });
+
+  bodyEl.addEventListener('drop', function (e) {
+    var file = e.dataTransfer.files[0];
+    if (file && file.type.indexOf('image/') === 0) {
+      e.preventDefault();
+      upload(file);
+    }
+  });
+
+  function upload(file) {
+    setStatus('uploading image…');
+
+    var form = new FormData();
+    form.append('file', file);
+
+    fetch('/api/admin/upload', { method: 'POST', body: form })
+      .then(function (r) {
+        return r.json().then(function (data) {
+          if (!r.ok) throw new Error(data.error || r.status);
+          return data;
+        });
+      })
+      .then(function (data) {
+        surround('![](' + data.url + ')', '');
+        setStatus('image added', 'ok');
+      })
+      .catch(function (err) {
+        setStatus('upload failed: ' + err.message, 'error');
+      });
+  }
+
+  /* preview */
+
+  function showEditor() {
+    previewEl.classList.add('hidden');
+    bodyEl.classList.remove('hidden');
+    previewBtn.textContent = 'PREVIEW';
+  }
+
+  previewBtn.addEventListener('click', function () {
+    if (previewEl.classList.contains('hidden')) {
+      previewEl.innerHTML = DOMPurify.sanitize(marked.parse(bodyEl.value || '*Nothing yet.*'));
+      previewEl.classList.remove('hidden');
+      bodyEl.classList.add('hidden');
+      previewBtn.textContent = 'EDIT';
+    } else {
+      showEditor();
+    }
+  });
+
+  /* save and delete */
+
+  document.getElementById('save').addEventListener('click', function () {
+    if (!titleEl.value.trim()) {
+      setStatus('title is required', 'error');
+      return;
+    }
+
+    var payload = {
+      title: titleEl.value.trim(),
+      body: bodyEl.value,
+      created_at: dateEl.value || today(),
+      published: publishedEl.checked
+    };
+
+    var url = currentId ? '/api/admin/notes/' + currentId : '/api/admin/notes';
+
+    setStatus('saving…');
+
+    fetch(url, {
+      method: currentId ? 'PUT' : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) {
+        return r.json().then(function (data) {
+          if (!r.ok) throw new Error(data.error || r.status);
+          return data;
+        });
+      })
+      .then(function (saved) {
+        currentId = saved.id;
+        dirty = false;
+        deleteBtn.classList.remove('hidden');
+        setStatus('saved', 'ok');
+        return refresh();
+      })
+      .catch(function (err) {
+        setStatus('save failed: ' + err.message, 'error');
+      });
+  });
+
+  deleteBtn.addEventListener('click', function () {
+    if (!currentId) return;
+    if (!confirm('Delete this post? This cannot be undone.')) return;
+
+    fetch('/api/admin/notes/' + currentId, { method: 'DELETE' })
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        dirty = false;
+        blank();
+        setStatus('deleted', 'ok');
+        return refresh();
+      })
+      .catch(function (err) {
+        setStatus('delete failed: ' + err.message, 'error');
+      });
+  });
+
+  /* boot */
+
+  function refresh() {
+    return fetch('/api/admin/notes')
+      .then(function (r) {
+        if (r.status === 401) throw new Error('not signed in');
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        posts = data;
+        renderList();
+      })
+      .catch(function (err) {
+        setStatus('could not load posts: ' + err.message, 'error');
+      });
+  }
+
+  window.addEventListener('beforeunload', function (e) {
+    if (dirty) e.preventDefault();
+  });
+
+  dateEl.value = today();
+  refresh();
+</script>
+</body>
+</html>
