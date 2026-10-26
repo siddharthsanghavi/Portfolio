@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>simpleCRM — Siddharth Sanghavi</title>
+<meta name="description" content="A lightweight CRM for a student club running company outreach, with access rules enforced in Postgres rather than application code.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #faf9f7;
+    --fg: #1a1a1a;
+    --mut: #8a857e;
+    --mut2: #4a4a4a;
+    --border: #e6e2dc;
+    --border2: #eceae5;
+    --accent-orange: #e2692a;
+    --accent-blue: #2b5fd9;
+    --swatch: repeating-linear-gradient(135deg, #efece7, #efece7 11px, #f6f4f0 11px, #f6f4f0 22px);
+  }
+
+  html.dark {
+    --bg: #0e1116;
+    --fg: #f4f6f9;
+    --mut: #6b7480;
+    --mut2: #9aa3ad;
+    --border: #1e2530;
+    --border2: #171d26;
+    --accent-orange: #f0894a;
+    --accent-blue: #5b8cff;
+    --swatch: repeating-linear-gradient(135deg, #151b24, #151b24 11px, #1a212b 11px, #1a212b 22px);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: background-color .2s ease, color .2s ease;
+  }
+
+  a { text-decoration: none; }
+  ::selection { background: #2b5fd9; color: #fff; }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 72px;
+  }
+
+  @media (max-width: 720px) {
+    .container { padding: 0 20px; }
+  }
+
+  /* header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 34px 0 30px;
+  }
+
+  .header .name { font-weight: 700; font-size: 19px; }
+
+  .header nav {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    font-size: 12px;
+    letter-spacing: .06em;
+    color: var(--mut);
+  }
+
+  .header nav a { color: var(--accent-blue); }
+
+  #dark-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    background: none;
+    border: 1px solid var(--accent-orange);
+    color: var(--fg);
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+
+  /* intro */
+  .intro { padding: 56px 0 10px; }
+
+  .intro .eyebrow {
+    font-size: 12px;
+    letter-spacing: .1em;
+    color: var(--mut);
+    margin-bottom: 34px;
+  }
+
+  .intro h1 {
+    font-weight: 500;
+    font-size: 52px;
+    line-height: 1.02;
+    letter-spacing: -.03em;
+    margin: 0 0 28px;
+  }
+
+  .intro .lede {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--mut2);
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  /* meta strip */
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 34px;
+    padding: 36px 0 0;
+  }
+
+  .meta div { display: flex; flex-direction: column; gap: 5px; }
+
+  .meta .k {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--mut);
+  }
+
+  .meta .v { font-size: 15px; }
+
+  /* actions */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 34px 0 10px;
+  }
+
+  .actions a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+
+  .actions a.primary {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue);
+    color: #fff;
+  }
+
+  /* sections */
+  section { padding: 46px 0 0; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 26px;
+    margin-bottom: 20px;
+  }
+
+  .section-head .index {
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--accent-orange);
+  }
+
+  .section-head h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  p.body {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--mut2);
+    max-width: 64ch;
+    margin: 0 0 16px;
+  }
+
+  /* gallery */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  @media (max-width: 640px) {
+    .gallery { grid-template-columns: 1fr; }
+  }
+
+  .shot { display: flex; flex-direction: column; gap: 9px; }
+
+  .shot .frame {
+    aspect-ratio: 16 / 10;
+    border: 1px solid var(--border);
+    background: var(--swatch);
+    display: flex;
+    align-items: flex-end;
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  .shot .frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    display: block;
+  }
+
+  .shot .frame span {
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--mut);
+  }
+
+  .shot .cap {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--mut2);
+  }
+
+  .shot .cap b {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .06em;
+    font-weight: 500;
+    color: var(--fg);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  /* feature list */
+  .features { display: grid; gap: 2px; }
+
+  .feature {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  @media (max-width: 640px) {
+    .feature { grid-template-columns: 1fr; gap: 6px; }
+  }
+
+  .feature .f-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--fg);
+    padding-top: 2px;
+  }
+
+  .feature .f-desc {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--mut2);
+  }
+
+  /* stack */
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  .stack span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    color: var(--mut2);
+  }
+
+  /* footer */
+  footer {
+    padding: 60px 0 90px;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer a { font-size: 13px; color: var(--accent-blue); }
+  footer .name { font-size: 12px; color: var(--mut); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div class="header">
+    <span class="name">Siddharth Sanghavi</span>
+    <nav class="mono">
+      <a href="index.html">Portfolio</a>
+      <button id="dark-toggle" class="mono">DARK MODE</button>
+    </nav>
+  </div>
+
+  <!-- intro -->
+  <div class="intro">
+    <div class="eyebrow mono">PROJECT · FULL-STACK WEB</div>
+    <h1>simpleCRM</h1>
+    <p class="lede">
+      A lightweight CRM for a student club running outreach to companies for
+      plant tours and sponsorships. Tracks companies, the people at them, every
+      touch, and what you owe them next — built for about five users, entirely
+      on free tiers, with access rules enforced in the database rather than in
+      application code.
+    </p>
+
+    <div class="meta">
+      <div><span class="k">ROLE</span><span class="v">Sole developer</span></div>
+      <div><span class="k">TYPE</span><span class="v">Full-stack web app</span></div>
+      <div><span class="k">USERS</span><span class="v">Student club</span></div>
+      <div><span class="k">COST</span><span class="v">$0 / month</span></div>
+    </div>
+
+    <div class="actions">
+      <a class="primary mono" href="https://github.com/siddharthsanghavi/SimpleCRM">SOURCE ON GITHUB →</a>
+    </div>
+  </div>
+
+  <!-- 01 why -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">01</span>
+      <h2>Why it exists</h2>
+    </div>
+    <p class="body">
+      A club chasing company tours and sponsorships runs the same problem a sales
+      team does — who have we contacted, who replied, what did we promise, what is
+      going cold — but with none of the budget and a membership that turns over
+      every year. Commercial CRMs are priced per seat and assume the team
+      persists.
+    </p>
+    <p class="body">
+      simpleCRM is sized for that: about five people, free tiers end to end, and
+      documentation written on the assumption that whoever inherits it has never
+      seen the code. The handover problem was treated as a design constraint, not
+      an afterthought.
+    </p>
+  </section>
+
+  <!-- 02 screens -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">02</span>
+      <h2>Screens</h2>
+    </div>
+
+    <div class="gallery">
+      <div class="shot">
+        <div class="frame"><span class="mono">[ dashboard screenshot ]</span></div>
+        <p class="cap"><b>DASHBOARD</b>Outreach goal progress, what is going cold, and the week ahead.</p>
+      </div>
+
+      <div class="shot">
+        <div class="frame"><span class="mono">[ pipeline screenshot ]</span></div>
+        <p class="cap"><b>PIPELINE</b>Draggable board with an amount and close date behind a weighted funnel.</p>
+      </div>
+
+      <div class="shot">
+        <div class="frame"><span class="mono">[ map screenshot ]</span></div>
+        <p class="cap"><b>MAP</b>Geocoded companies clustered by location, for planning trips.</p>
+      </div>
+
+      <div class="shot">
+        <div class="frame"><span class="mono">[ company page screenshot ]</span></div>
+        <p class="cap"><b>COMPANY</b>Contacts as a reporting tree, activity, files, capability tags.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 what it does -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">03</span>
+      <h2>What it does</h2>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="f-name">PIPELINE</div>
+        <div class="f-desc">
+          Companies move across a draggable board. Each carries an amount and a
+          close date, which feed a weighted funnel — so the number at the top
+          reflects probability, not wishful thinking.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">CONTACTS AS A TREE</div>
+        <div class="f-desc">
+          People are stored with their reporting lines intact rather than as a
+          flat list, so it is obvious who sits above the person who has gone
+          quiet. Deal roles sit on the contact.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">MAP &amp; CALENDAR</div>
+        <div class="f-desc">
+          Geocoded companies on a clustered Leaflet map for planning trips, and a
+          calendar for tours and events.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">COLD EMAIL DRAFTS</div>
+        <div class="f-desc">
+          Drafts generated from templates the club edits itself. The app never
+          sends mail on anyone's behalf — it hands you text.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">ACTIVITY FEED</div>
+        <div class="f-desc">
+          Every action anybody takes lands in one feed, logged by database trigger
+          — so a change made directly in the SQL editor is recorded exactly like
+          one made in the app.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">DELETION QUEUE</div>
+        <div class="f-desc">
+          Deletes are narrower than writes. Any member can edit; only the record's
+          creator or an admin can delete, and company deletions go through an
+          approval queue with a permanent record.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">IMPORT / EXPORT</div>
+        <div class="f-desc">
+          CSV import for companies and contacts, bulk geocoding, and export back
+          out — so the club's data is never trapped in the app.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 security -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">04</span>
+      <h2>Security model</h2>
+    </div>
+    <p class="body">
+      The interesting constraint was that volunteers would be editing this, so
+      application code could not be the thing standing between a bug and the
+      club's contact list. Authorisation lives in Postgres instead.
+    </p>
+
+    <div class="features">
+      <div class="feature">
+        <div class="f-name">ROW-LEVEL SECURITY</div>
+        <div class="f-desc">
+          Every policy requires a profile row, so access is decided by Postgres. A
+          bug in a page cannot leak data that RLS would not have handed over.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">NO SERVICE-ROLE KEY</div>
+        <div class="f-desc">
+          The app only ever holds the anon key, which grants nothing on its own.
+          There is no credential in the repository that can bypass RLS.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">MAGIC LINKS ONLY</div>
+        <div class="f-desc">
+          No passwords are stored, so there are no passwords to leak. An address
+          must be on an allowlist before a profile exists for it.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">THREE ROLES</div>
+        <div class="f-desc">
+          Viewer reads and writes nothing, member reads and writes, admin also
+          manages people. Reads go through <span class="mono">has_access()</span>
+          and writes through <span class="mono">is_member()</span> — hidden
+          buttons are only a courtesy.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 built with -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">05</span>
+      <h2>Built with</h2>
+    </div>
+
+    <div class="stack">
+      <span>Next.js 15</span>
+      <span>React 19</span>
+      <span>TypeScript</span>
+      <span>Supabase / Postgres</span>
+      <span>Tailwind</span>
+      <span>Leaflet</span>
+      <span>Vercel</span>
+    </div>
+
+    <p class="body" style="padding-top:22px">
+      App Router with server actions, Supabase for Postgres and magic-link auth,
+      Leaflet with marker clustering for the map, and Papa Parse for CSV import.
+      Free tier throughout — 500 MB of Postgres holds hundreds of thousands of
+      contacts, which the club will not outgrow.
+    </p>
+  </section>
+
+  <!-- footer nav -->
+  <footer>
+    <a class="mono" href="index.html">← Back to Portfolio</a>
+    <span class="name mono">Siddharth Sanghavi</span>
+  </footer>
+
+</div>
+
+<script>
+  var darkToggle = document.getElementById('dark-toggle');
+  darkToggle.addEventListener('click', function () {
+    var isDark = document.documentElement.classList.toggle('dark');
+    darkToggle.textContent = isDark ? 'LIGHT MODE' : 'DARK MODE';
+  });
+</script>
+</body>
+</html>
