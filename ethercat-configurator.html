@@ -324,15 +324,15 @@
     <div class="meta">
       <div><span class="k">ROLE</span><span class="v">Sole developer</span></div>
       <div><span class="k">TYPE</span><span class="v">Engineering tool</span></div>
-      <div><span class="k">STATUS</span><span class="v">v0.2.0 · active</span></div>
-      <div><span class="k">LICENSE</span><span class="v">MIT</span></div>
+      <div><span class="k">STATUS</span><span class="v">v0.1 · active</span></div>
+      <div><span class="k">LICENSE</span><span class="v">MIT (source)</span></div>
     </div>
 
     <div class="actions">
       <a class="primary mono" href="configcat.html">LAUNCH THE APP →</a>
       <a class="mono" href="https://github.com/siddharthsanghavi/ConfigCAT">SOURCE ON GITHUB →</a>
     </div>
-    <p class="run-note mono">Runs entirely in your browser — nothing is uploaded.</p>
+    <p class="run-note mono">Runs entirely in your browser — nothing is uploaded. Design aid, not an engineering tool.</p>
   </div>
 
   <!-- 01 why -->
@@ -407,10 +407,19 @@
       </div>
 
       <div class="feature">
+        <div class="f-name">TOPOLOGY VIEW</div>
+        <div class="f-desc">
+          An EtherCAT topology drawn in the style of the TwinCAT online view,
+          with a link only where devices physically touch.
+        </div>
+      </div>
+
+      <div class="feature">
         <div class="f-name">EXPORTS</div>
         <div class="f-desc">
-          Excel bill of materials, PDF wiring diagram, PNG of the panel, and a
-          TwinCAT-style XML device list.
+          Excel bill of materials, PDF wiring diagram, PNG of the panel and of
+          the topology, and a TwinCAT-style XML device list. Named projects save
+          in the browser, and designs move between machines as JSON.
         </div>
       </div>
 
@@ -433,19 +442,24 @@
     </div>
 
     <div class="numbers">
-      <div><span class="n">~660</span><span class="l mono">CATALOG PARTS</span></div>
-      <div><span class="n">21</span><span class="l mono">MANUFACTURERS</span></div>
-      <div><span class="n">6.6k</span><span class="l mono">LINES OF SOURCE</span></div>
+      <div><span class="n">~1,550</span><span class="l mono">CATALOG PARTS</span></div>
+      <div><span class="n">281</span><span class="l mono">MANUFACTURERS</span></div>
+      <div><span class="n">893</span><span class="l mono">FROM THE ETG GUIDE</span></div>
       <div><span class="n">1</span><span class="l mono">FILE TO SHIP</span></div>
     </div>
 
     <p class="body" style="padding-top:26px">
-      The catalog spans couplers, embedded and industrial PCs, panels, drives and
-      motors, the full Beckhoff EL/EP terminal families, plus sensors, contactors
-      and breakers, disconnects, power supplies, distribution, safety devices,
-      pneumatics, IP67 I/O and IO-Link masters. Beckhoff KL terminals sit behind a
-      BK1120 coupler and WAGO 750 I/O behind a 750-354 — bridged, since neither is
-      natively EtherCAT.
+      About 660 parts are hand-curated across 22 manufacturers — couplers,
+      embedded and industrial PCs, panels, drives and motors, the full Beckhoff
+      EL/EP terminal families, plus sensors, contactors and breakers,
+      disconnects, power supplies, distribution, safety devices, pneumatics,
+      IP67 I/O and IO-Link masters.
+    </p>
+    <p class="body">
+      The other 893 come from the EtherCAT Technology Group product guide —
+      identification data only: company, product name, listing category and
+      certification listing, with a link back to the guide. That is what takes
+      the catalog to roughly 1,550 parts across 281 manufacturers.
     </p>
   </section>
 
@@ -468,6 +482,37 @@
       The UI, geometry, device faces, wiring and exports live in a single React
       component tree; the parts catalog is split out so the core stays readable,
       with bulk entries generated from an ETG product CSV by a Python script.
+    </p>
+  </section>
+
+  <!-- 06 accuracy -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">06</span>
+      <h2>Accuracy &amp; attribution</h2>
+    </div>
+    <p class="body">
+      This is a design-aid and learning tool, not an engineering or procurement
+      system. Beckhoff data is the most accurate and was checked against public
+      documentation; other hand-curated parts are representative model families
+      with approximate electrical specs; ETG product-guide entries are the
+      loosest, since the guide carries no electrical data, so their sizes,
+      channel counts and pinouts are representative defaults per product type.
+      Component drawings are original stylized SVG, not renders of specific
+      products. Verify against the manufacturer's datasheet before using any of
+      it for real design, ordering or installation.
+    </p>
+    <p class="body">
+      The MIT licence covers the source and original artwork only. Beckhoff,
+      EtherCAT, EtherCAT P, Safety over EtherCAT, TwinCAT and TwinSAFE, and
+      every other company and product name in the catalog, are trademarks of
+      their respective owners, used for identification only. EtherCAT® is a
+      registered trademark and patented technology licensed by Beckhoff
+      Automation GmbH. ETG product-guide listings are submitted by member
+      companies; ETG takes no responsibility for their content and the guide is
+      incomplete. This project is independent and is not affiliated with,
+      authorized, endorsed or sponsored by Beckhoff Automation, the EtherCAT
+      Technology Group, or any other company named in it.
     </p>
   </section>
 
