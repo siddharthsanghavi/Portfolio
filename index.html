@@ -381,6 +381,24 @@
   .contact-links .location { color: var(--mut); }
 
   /* footer */
+
+  footer {
+    padding: 40px 0 90px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer .name {
+    font-size: 12px;
+    color: var(--mut);
+  }
+
+  footer a {
+    font-size: 13px;
+    color: var(--accent-blue);
+  }
   /* mobile */
   @media (max-width: 860px) {
     .skills-grid { grid-template-columns: repeat(2, 1fr); gap: 36px 32px; }
@@ -405,24 +423,6 @@
     .contact-links { flex-wrap: wrap; gap: 14px; }
 
     footer { flex-direction: column; align-items: flex-start; gap: 14px; }
-  }
-
-  footer {
-    padding: 40px 0 90px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  footer .name {
-    font-size: 12px;
-    color: var(--mut);
-  }
-
-  footer a {
-    font-size: 13px;
-    color: var(--accent-blue);
   }
 </style>
 </head>
