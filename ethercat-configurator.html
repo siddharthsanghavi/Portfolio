@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EtherCAT Configurator — Siddharth Sanghavi</title>
+<meta name="description" content="An offline, single-file web app for laying out, wiring and validating Beckhoff EtherCAT stations and multi-vendor control panels.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #faf9f7;
+    --fg: #1a1a1a;
+    --mut: #8a857e;
+    --mut2: #4a4a4a;
+    --border: #e6e2dc;
+    --border2: #eceae5;
+    --accent-orange: #e2692a;
+    --accent-blue: #2b5fd9;
+  }
+
+  html.dark {
+    --bg: #0e1116;
+    --fg: #f4f6f9;
+    --mut: #6b7480;
+    --mut2: #9aa3ad;
+    --border: #1e2530;
+    --border2: #171d26;
+    --accent-orange: #f0894a;
+    --accent-blue: #5b8cff;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: background-color .2s ease, color .2s ease;
+  }
+
+  a { text-decoration: none; }
+  ::selection { background: #2b5fd9; color: #fff; }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 72px;
+  }
+
+  @media (max-width: 720px) {
+    .container { padding: 0 20px; }
+  }
+
+  /* header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 34px 0 30px;
+  }
+
+  .header .name { font-weight: 700; font-size: 19px; }
+
+  .header nav {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    font-size: 12px;
+    letter-spacing: .06em;
+    color: var(--mut);
+  }
+
+  .header nav a { color: var(--accent-blue); }
+
+  #dark-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    background: none;
+    border: 1px solid var(--accent-orange);
+    color: var(--fg);
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+
+  /* intro */
+  .intro { padding: 56px 0 10px; }
+
+  .intro .eyebrow {
+    font-size: 12px;
+    letter-spacing: .1em;
+    color: var(--mut);
+    margin-bottom: 34px;
+  }
+
+  .intro h1 {
+    font-weight: 500;
+    font-size: 52px;
+    line-height: 1.02;
+    letter-spacing: -.03em;
+    margin: 0 0 28px;
+  }
+
+  .intro .lede {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--mut2);
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  /* meta strip */
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 34px;
+    padding: 36px 0 0;
+  }
+
+  .meta div { display: flex; flex-direction: column; gap: 5px; }
+
+  .meta .k {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--mut);
+  }
+
+  .meta .v { font-size: 15px; }
+
+  /* actions */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 34px 0 10px;
+  }
+
+  .actions a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+
+  .actions a.primary {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue);
+    color: #fff;
+  }
+
+  /* sections */
+  section { padding: 46px 0 0; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 26px;
+    margin-bottom: 20px;
+  }
+
+  .section-head .index {
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--accent-orange);
+  }
+
+  .section-head h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  p.body {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--mut2);
+    max-width: 64ch;
+    margin: 0 0 16px;
+  }
+
+  /* feature list */
+  .features { display: grid; gap: 2px; }
+
+  .feature {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  @media (max-width: 640px) {
+    .feature { grid-template-columns: 1fr; gap: 6px; }
+  }
+
+  .feature .f-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--fg);
+    padding-top: 2px;
+  }
+
+  .feature .f-desc {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--mut2);
+  }
+
+  /* numbers */
+  .numbers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    padding: 6px 0 4px;
+  }
+
+  .numbers div { display: flex; flex-direction: column; gap: 4px; }
+
+  .numbers .n {
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -.02em;
+  }
+
+  .numbers .l {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--mut);
+  }
+
+  /* stack */
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  .stack span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    color: var(--mut2);
+  }
+
+  /* footer */
+  footer {
+    padding: 60px 0 90px;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer a { font-size: 13px; color: var(--accent-blue); }
+  footer .name { font-size: 12px; color: var(--mut); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div class="header">
+    <span class="name">Siddharth Sanghavi</span>
+    <nav class="mono">
+      <a href="index.html">Portfolio</a>
+      <button id="dark-toggle" class="mono">DARK MODE</button>
+    </nav>
+  </div>
+
+  <!-- intro -->
+  <div class="intro">
+    <div class="eyebrow mono">PROJECT · INDUSTRIAL AUTOMATION</div>
+    <h1>EtherCAT Configurator</h1>
+    <p class="lede">
+      A single-file, offline web app for visually laying out Beckhoff EtherCAT
+      stations and multi-vendor control panels — place devices, wire them with
+      automatic cable selection, validate the design, and export a bill of
+      materials, a wiring diagram, and a TwinCAT-style device list.
+    </p>
+
+    <div class="meta">
+      <div><span class="k">ROLE</span><span class="v">Sole developer</span></div>
+      <div><span class="k">TYPE</span><span class="v">Engineering tool</span></div>
+      <div><span class="k">STATUS</span><span class="v">v0.2.0 · active</span></div>
+      <div><span class="k">LICENSE</span><span class="v">MIT</span></div>
+    </div>
+
+    <div class="actions">
+      <a class="primary mono" href="https://github.com/siddharthsanghavi/ConfigCAT/raw/main/Sids-EtherCAT-Configurator.html">DOWNLOAD THE APP</a>
+      <a class="mono" href="https://github.com/siddharthsanghavi/ConfigCAT">SOURCE ON GITHUB →</a>
+    </div>
+  </div>
+
+  <!-- 01 why -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">01</span>
+      <h2>Why it exists</h2>
+    </div>
+    <p class="body">
+      Specifying an EtherCAT station means holding a lot of constraints in your
+      head at once: how much current the E-bus can supply, which potential group
+      a terminal sits in, whether a power supply is sized for the load, whether
+      two connectors can legally be wired together at all. Get one wrong and it
+      surfaces on the shop floor, not at the desk.
+    </p>
+    <p class="body">
+      This tool moves those checks earlier. You build the panel visually, the
+      wiring rules are enforced as you go, and the validator flags budget and
+      structure problems before anything is ordered. Then it produces the
+      paperwork — BOM, wiring diagram, device list — straight from the model.
+    </p>
+    <p class="body">
+      It is deliberately one HTML file. No install, no server, no account — the
+      kind of constraint that matters on a locked-down engineering workstation.
+    </p>
+  </section>
+
+  <!-- 02 what it does -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">02</span>
+      <h2>What it does</h2>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="f-name">DIN-RAIL LAYOUT</div>
+        <div class="f-desc">
+          Couplers and EL terminals drawn to scale at 4.4 px/mm and positioned by
+          cumulative width. Multiple rails, multiple stations per rail, and
+          free-placed components — PCs, panels, drives, motors, IP67 boxes — on an
+          auto-expanding canvas.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">SMART WIRING</div>
+        <div class="f-desc">
+          Select two connection points and the correct cable is chosen from what
+          they are. Incompatible pairs are refused outright. EtherCAT cables glow,
+          Safety-over-EtherCAT blinks yellow, IO-Link blinks blue.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">VISIBLE BACKPLANE</div>
+        <div class="f-desc">
+          The two buses formed by clipping terminals together — not by any drawn
+          cable — are rendered around each rail: a teal E-bus bar above, and
+          power-contact bars below coloured by voltage and labelled with their
+          source terminal. Makes what feeds what legible at a glance.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">VALIDATION</div>
+        <div class="f-desc">
+          Rail structure, E-bus and power-contact budgets, potential groups, PSU
+          sizing, Hot-Connect IDs, and wiring faults — checked continuously
+          against the model rather than after the fact.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">EXPORTS</div>
+        <div class="f-desc">
+          Excel bill of materials, PDF wiring diagram, PNG of the panel, and a
+          TwinCAT-style XML device list.
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="f-name">OFFLINE BY DESIGN</div>
+        <div class="f-desc">
+          Vite bundles all JS and CSS inline into one self-contained HTML file, so
+          it runs from a <span class="mono">file://</span> URL with no network at
+          all. Work autosaves to the browser; projects save and load as files.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 scale -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">03</span>
+      <h2>Scale</h2>
+    </div>
+
+    <div class="numbers">
+      <div><span class="n">~660</span><span class="l mono">CATALOG PARTS</span></div>
+      <div><span class="n">21</span><span class="l mono">MANUFACTURERS</span></div>
+      <div><span class="n">6.6k</span><span class="l mono">LINES OF SOURCE</span></div>
+      <div><span class="n">1</span><span class="l mono">FILE TO SHIP</span></div>
+    </div>
+
+    <p class="body" style="padding-top:26px">
+      The catalog spans couplers, embedded and industrial PCs, panels, drives and
+      motors, the full Beckhoff EL/EP terminal families, plus sensors, contactors
+      and breakers, disconnects, power supplies, distribution, safety devices,
+      pneumatics, IP67 I/O and IO-Link masters. Beckhoff KL terminals sit behind a
+      BK1120 coupler and WAGO 750 I/O behind a 750-354 — bridged, since neither is
+      natively EtherCAT.
+    </p>
+  </section>
+
+  <!-- 04 built with -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">04</span>
+      <h2>Built with</h2>
+    </div>
+
+    <div class="stack">
+      <span>React 18</span>
+      <span>Vite 5</span>
+      <span>vite-plugin-singlefile</span>
+      <span>jsPDF</span>
+      <span>Python</span>
+    </div>
+
+    <p class="body" style="padding-top:22px">
+      The UI, geometry, device faces, wiring and exports live in a single React
+      component tree; the parts catalog is split out so the core stays readable,
+      with bulk entries generated from an ETG product CSV by a Python script.
+    </p>
+  </section>
+
+  <!-- footer nav -->
+  <footer>
+    <a class="mono" href="index.html">← Back to Portfolio</a>
+    <span class="name mono">Siddharth Sanghavi</span>
+  </footer>
+
+</div>
+
+<script>
+  var darkToggle = document.getElementById('dark-toggle');
+  darkToggle.addEventListener('click', function () {
+    var isDark = document.documentElement.classList.toggle('dark');
+    darkToggle.textContent = isDark ? 'LIGHT MODE' : 'DARK MODE';
+  });
+</script>
+</body>
+</html>

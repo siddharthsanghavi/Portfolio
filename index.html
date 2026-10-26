@@ -327,6 +327,16 @@
     gap: 12px;
   }
 
+  .p-links {
+    display: flex;
+    gap: 18px;
+    margin: 18px 0 0;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+
+  .p-links a { color: var(--accent-blue); }
+
   .p-metric {
     display: flex;
     justify-content: space-between;
@@ -599,23 +609,27 @@
       <span class="index mono">03</span>
       <h2>Projects</h2>
     </div>
-    <p class="projects-hint mono">Placeholders — click a row to expand.</p>
+    <p class="projects-hint mono">Click a row to expand.</p>
 
     <div class="project">
       <button class="project-head" data-project="p0">
-        <span class="p-name">Project Name</span>
-        <span class="p-year mono">20XX</span>
+        <span class="p-name">EtherCAT Configurator</span>
+        <span class="p-year mono">2026</span>
       </button>
       <div class="project-body" id="p0" hidden>
         <div class="project-shot"><span class="mono">[ project photo ]</span></div>
         <div class="project-details">
-          <p class="p-blurb">Short description of what this project was and what you did on it.</p>
+          <p class="p-blurb">Offline single-file web app for laying out Beckhoff EtherCAT stations and multi-vendor control panels — automatic cable selection, live validation of E-bus and power budgets, and exports to BOM, wiring diagram and TwinCAT device list.</p>
           <div>
-            <div class="p-tag mono">TAG · TAG · TAG</div>
+            <div class="p-tag mono">REACT · VITE · ETHERCAT · AUTOMATION</div>
             <div class="p-metrics">
-              <div class="p-metric"><span class="k">metric</span><span class="v">—</span></div>
-              <div class="p-metric"><span class="k">metric</span><span class="v">—</span></div>
+              <div class="p-metric"><span class="k">catalog parts</span><span class="v">~660</span></div>
+              <div class="p-metric"><span class="k">manufacturers</span><span class="v">21</span></div>
             </div>
+            <p class="p-links mono">
+              <a href="ethercat-configurator.html">Read more →</a>
+              <a href="https://github.com/siddharthsanghavi/ConfigCAT">GitHub →</a>
+            </p>
           </div>
         </div>
       </div>
