@@ -1,6 +1,8 @@
-export async function onRequestGet({ params, env }) {
+export async function onRequestGet({ params, env, next }) {
   const object = await env.IMAGES.get(params.key);
-  if (!object) return new Response('not found', { status: 404 });
+
+  // Not an upload — fall through to the static file of the same name.
+  if (!object) return next();
 
   const headers = new Headers();
   object.writeHttpMetadata(headers);
