@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thought Terminal — Editor</title>
+<script src="/theme.js"></script>
 <meta name="robots" content="noindex">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -332,12 +333,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
 <script>
-  var darkToggle = document.getElementById('dark-toggle');
-  darkToggle.addEventListener('click', function () {
-    var isDark = document.documentElement.classList.toggle('dark');
-    darkToggle.textContent = isDark ? 'LIGHT MODE' : 'DARK MODE';
-  });
-
   var titleEl = document.getElementById('title');
   var dateEl = document.getElementById('date');
   var bodyEl = document.getElementById('body');
