@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HatchBridge Prototyping — Siddharth Sanghavi</title>
+<script src="/theme.js"></script>
+<meta name="description" content="A lightweight CRM for a student club running company outreach, with access rules enforced in Postgres rather than application code.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #faf9f7;
+    --fg: #1a1a1a;
+    --mut: #8a857e;
+    --mut2: #4a4a4a;
+    --border: #e6e2dc;
+    --border2: #eceae5;
+    --accent-orange: #e2692a;
+    --accent-blue: #2b5fd9;
+    --swatch: repeating-linear-gradient(135deg, #efece7, #efece7 11px, #f6f4f0 11px, #f6f4f0 22px);
+  }
+
+  html.dark {
+    --bg: #0e1116;
+    --fg: #f4f6f9;
+    --mut: #6b7480;
+    --mut2: #9aa3ad;
+    --border: #1e2530;
+    --border2: #171d26;
+    --accent-orange: #f0894a;
+    --accent-blue: #5b8cff;
+    --swatch: repeating-linear-gradient(135deg, #151b24, #151b24 11px, #1a212b 11px, #1a212b 22px);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: background-color .2s ease, color .2s ease;
+  }
+
+  a { text-decoration: none; }
+  ::selection { background: #2b5fd9; color: #fff; }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 72px;
+  }
+
+  @media (max-width: 720px) {
+    .container { padding: 0 20px; }
+  }
+
+  /* header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 34px 0 30px;
+  }
+
+  .header .name { font-weight: 700; font-size: 19px; }
+
+  .header nav {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    font-size: 12px;
+    letter-spacing: .06em;
+    color: var(--mut);
+  }
+
+  .header nav a { color: var(--accent-blue); }
+
+  #dark-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    background: none;
+    border: 1px solid var(--accent-orange);
+    color: var(--fg);
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+
+  /* intro */
+  .intro { padding: 56px 0 10px; }
+
+  .intro .eyebrow {
+    font-size: 12px;
+    letter-spacing: .1em;
+    color: var(--mut);
+    margin-bottom: 34px;
+  }
+
+  .intro h1 {
+    font-weight: 500;
+    font-size: 52px;
+    line-height: 1.02;
+    letter-spacing: -.03em;
+    margin: 0 0 28px;
+  }
+
+  .intro .lede {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--mut2);
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  /* meta strip */
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 34px;
+    padding: 36px 0 0;
+  }
+
+  .meta div { display: flex; flex-direction: column; gap: 5px; }
+
+  .meta .k {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--mut);
+  }
+
+  .meta .v { font-size: 15px; }
+
+  /* actions */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 34px 0 10px;
+  }
+
+  .actions a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+
+  .actions a.primary {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue);
+    color: #fff;
+  }
+
+  /* sections */
+  section { padding: 46px 0 0; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 26px;
+    margin-bottom: 20px;
+  }
+
+  .section-head .index {
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--accent-orange);
+  }
+
+  .section-head h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  p.body {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--mut2);
+    max-width: 64ch;
+    margin: 0 0 16px;
+  }
+
+  /* gallery */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  @media (max-width: 640px) {
+    .gallery { grid-template-columns: 1fr; }
+  }
+
+  .shot { display: flex; flex-direction: column; gap: 9px; }
+
+  .shot .frame {
+    aspect-ratio: 16 / 10;
+    border: 1px solid var(--border);
+    background: var(--swatch);
+    overflow: hidden;
+  }
+
+  .shot .frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    display: block;
+  }
+
+  .shot .frame span {
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--mut);
+  }
+
+  .shot .cap {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--mut2);
+  }
+
+  .shot .cap b {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .06em;
+    font-weight: 500;
+    color: var(--fg);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  /* feature list */
+  .features { display: grid; gap: 2px; }
+
+  .feature {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  @media (max-width: 640px) {
+    .feature { grid-template-columns: 1fr; gap: 6px; }
+  }
+
+  .feature .f-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--fg);
+    padding-top: 2px;
+  }
+
+  .feature .f-desc {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--mut2);
+  }
+
+  /* stack */
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  .stack span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    color: var(--mut2);
+  }
+
+  /* footer */
+  footer {
+    padding: 60px 0 90px;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer a { font-size: 13px; color: var(--accent-blue); }
+  footer .name { font-size: 12px; color: var(--mut); }
+  /* mobile */
+  @media (max-width: 640px) {
+    .header { padding: 26px 0 22px; }
+    .header .name { font-size: 17px; }
+    .header nav { gap: 14px; }
+
+    .intro { padding: 36px 0 6px; }
+    .intro h1 { font-size: 36px; }
+    .intro .lede { font-size: 16px; }
+
+    .meta { gap: 20px 28px; padding-top: 28px; }
+    .actions a { flex: 1 1 100%; text-align: center; }
+
+    section { padding: 34px 0 0; }
+    .section-head { padding-top: 22px; }
+    .section-head h2 { font-size: 19px; }
+
+    footer { flex-direction: column; align-items: flex-start; gap: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div class="header">
+    <span class="name">Siddharth Sanghavi</span>
+    <nav class="mono">
+      <a href="index.html">Portfolio</a>
+      <button id="dark-toggle" class="mono">DARK MODE</button>
+    </nav>
+  </div>
+
+  <!-- intro -->
+  <div class="intro">
+    <div class="eyebrow mono">PROJECT · PROTOTYPING &amp; FABRICATION</div>
+    <h1>HatchBridge Prototyping</h1>
+    <p class="lede">
+      Work from the HatchBridge Incubator prototyping lab, where I'm a Technical
+      Fellow helping startups with sourcing, design and prototyping, and looking
+      after the lab's 3D printers, laser cutter and soldering stations.
+    </p>
+
+    <div class="meta">
+      <div><span class="k">ROLE</span><span class="v">Technical Fellow</span></div>
+      <div><span class="k">WHERE</span><span class="v">HatchBridge Incubator</span></div>
+      <div><span class="k">SINCE</span><span class="v">Oct 2023</span></div>
+      <div><span class="k">TOOLS</span><span class="v">3D printing · CAD</span></div>
+    </div>
+  </div>
+
+  <!-- 01 work -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">01</span>
+      <h2>Work</h2>
+    </div>
+
+    <div class="gallery">
+      <div class="shot">
+        <div class="frame">
+          <img src="img/atl-startup-awards-2024.webp" alt="Nine 3D-printed trophies for the 2024 Atlanta Startup Awards, each with a gold award plate on a black twisted-column stand." loading="lazy">
+        </div>
+        <p class="cap"><b>2024 STARTUP ATLANTA AWARDS</b>Trophies with a tilted cube carrying the award plate, held up by twisted columns between two discs.</p>
+      </div>
+      <div class="shot">
+        <div class="frame">
+          <img src="img/atl-startup-awards-2025.jpg" alt="The 2025 Startup Atlanta Awards trophy: a gold 3D-printed speech-bubble and lightning-bolt outline framing a clear panel printed with the event name." loading="lazy">
+        </div>
+        <p class="cap"><b>2025 STARTUP ATLANTA AWARDS</b>The event's speech-bubble and lightning-bolt mark printed in gold, framing a clear panel.</p>
+      </div>
+      <div class="shot">
+        <div class="frame">
+          <img src="img/mycologic-filter-enclosure.png" alt="CAD render of the MycoLogic filter enclosure: a box with mounting tabs, a framed filter slot and a cable port." loading="lazy">
+        </div>
+        <p class="cap"><b>MYCOLOGIC FILTER ENCLOSURE</b>A slide-in filter frame, a separate compartment, a cable port and mounting tabs, designed for 3D printing.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 built with -->
+  <section>
+    <div class="section-head">
+      <span class="index mono">02</span>
+      <h2>Built with</h2>
+    </div>
+
+    <div class="stack">
+      <span>Fusion 360</span>
+      <span>3D printing</span>
+      <span>Laser cutting</span>
+      <span>Soldering</span>
+    </div>
+  </section>
+
+  <!-- footer nav -->
+  <footer>
+    <a class="mono" href="index.html">← Back to Portfolio</a>
+    <span class="name mono">Siddharth Sanghavi</span>
+  </footer>
+
+</div>
+</body>
+</html>
